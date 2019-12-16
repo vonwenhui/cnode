@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Drum</title>
+    <link rel="stylesheet" href="./drum.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+</head>
+<body>
+    <div id="drum-machine">
+        <div id="drum-frame" :class="{disable: !powerIsActived}">
+            <div v-for="(item, index) in drumList" :key="item.id" class="drum-pad" @click="clickKey(item,index)">
+                {{item.id}}
+                <audio class="clip" id="item.id" :src="bankIsActived? item.pianoSrc : item.heaterSrc" ref="audio"></audio> 
+            </div>
+        </div>
+        <div id="control">
+            <div id="power" class="trigger-frame">
+                <label for="">Power</label>
+                <div class="toggle-outter"  :class ="{toggle:powerIsActived}" @click="togglePower()">
+                    <div class="toggle-inner"></div>
+                </div>
+            </div>
+            <div id="display">
+                <p>{{this.displayValue}}</p>
+            </div>
+            <div id="volume">
+                <input type="range" step="0.01" min="0" max="1" value="0.3" ref="volume" @click="clickVolume()">
+            </div>
+            <div id="bank" class="trigger-frame" :class="{disable: !powerIsActived}">
+                <label for="">Bank</label>
+                <div class="toggle-outter"  :class ="{toggle:bankIsActived}" @click="toggleBank()">
+                    <div class="toggle-inner"></div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#drum-machine',
+            data: {
+                powerIsActived: true,
+                bankIsActived: false,
+                displayValue: '',
+                drumList:[
+                    {id:'Q', pianoValue:'Chord 1', heaterValue:'Heater 1', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Chord_1.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3'},
+                    {id:'W', pianoValue:'Chord 2', heaterValue:'Heater 2', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Chord_2.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3'},
+                    {id:'E', pianoValue:'Chord 3', heaterValue:'Heater 3', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Chord_3.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3'},
+                    {id:'A', pianoValue:'Shaker', heaterValue:'Heater 4', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Give_us_a_light.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3'},
+                    {id:'S', pianoValue:'Open HH', heaterValue:'Clap', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Dry_Ohh.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3'},
+                    {id:'D', pianoValue:'Close HH', heaterValue:'Open HH', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Bld_H1.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3'},
+                    {id:'Z', pianoValue:'Punchy Kick', heaterValue:"Kick n' Hat", pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/punchy_kick_1.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3'},
+                    {id:'X', pianoValue:'Side Stick', heaterValue:'Kick', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/side_stick_1.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3'},
+                    {id:'C', pianoValue:'Snare', heaterValue:'Close HH', pianoSrc:'https://s3.amazonaws.com/freecodecamp/drums/Brk_Snr.mp3', heaterSrc:'https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3'}
+                ]
+            },
+            methods: {
+                clickKey: function(item, index) {
+                    if (this.powerIsActived) {
+                        this.displayValue = this.bankIsActived? item.pianoValue : item.heaterValue
+                        this.$refs.audio[index].play()
+                    }
+                },
+                clickVolume: function() {
+                    if (this.powerIsActived) {
+                        var volume = this.$refs.volume.value
+                        var audioArray = this.$refs.audio
+                        audioArray.forEach(element => {
+                            element.volume = volume
+                        });
+                        this.displayValue = 'Volume: ' + String(volume * 100)
+                    }
+                    // 为什么置空操作不生效
+                    setTimeout(function() {
+                        this.displayValue = 'aa'
+                    },1000)
+                },
+                togglePower: function() {
+                    //动态类切换toggle的css样式
+                    this.powerIsActived = !this.powerIsActived
+                    //显示框无输出
+                    this.displayValue = ''
+                    //音量条是否disabled
+                    this.$refs.volume.disabled = this.powerIsActived? false:true
+                    //静音，保存原始音量
+                    var oldVolume = this.$refs.volume.value
+                    var audioArray = this.$refs.audio
+                    audioArray.forEach(element => {
+                        element.volume = this.powerIsActived? oldVolume:0
+                    });
+                },
+                toggleBank: function() {
+                    this.bankIsActived = !this.bankIsActived
+                    this.displayValue = this.bankIsActived? 'Smooth Piano Kit':'Heater Kit'
+                }
+            },
+        })
+    </script>
+</body>
+</html>
